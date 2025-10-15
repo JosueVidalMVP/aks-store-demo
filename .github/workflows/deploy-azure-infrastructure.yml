@@ -63,26 +63,30 @@ jobs:
 
       - name: Terraform Init
         working-directory: ./infra/terraform
-        run: |
-          terraform init \
-            -backend-config="resource_group_name=${{ env.RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=${{ secrets.TERRAFORM_STORAGE_ACCOUNT }}" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=workshop.tfstate"
+        run: terraform init
 
-      - name: Terraform Format
+      - name: Terraform Validate
         working-directory: ./infra/terraform
-        run: terraform fmt -check
+        run: terraform validate
 
       - name: Terraform Plan
         working-directory: ./infra/terraform
         run: |
           terraform plan \
-            -var="resource_group_name=${{ env.RESOURCE_GROUP_NAME }}" \
-            -var="location=${{ env.LOCATION }}" \
+            -var-file="workshop.tfvars.json" \
             -out=tfplan
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_USE_OIDC: true
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         working-directory: ./infra/terraform
         run: terraform apply -auto-approve tfplan
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_USE_OIDC: true
