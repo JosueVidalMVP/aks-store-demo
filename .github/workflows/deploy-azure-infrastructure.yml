@@ -16,11 +16,11 @@ permissions:
   id-token: write
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   RESOURCE_GROUP_NAME: workshop
   LOCATION: eastus  # Altere conforme sua região preferida
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
   
 jobs:
   deploy-infrastructure:
@@ -37,6 +37,7 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
       - name: Create Resource Group
         uses: azure/CLI@v1
